@@ -1,4 +1,4 @@
-package depth
+package depthx
 
 import (
 	"go/build"

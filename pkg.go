@@ -1,7 +1,8 @@
-package depth
+package depthx
 
 import (
 	"bytes"
+	"fmt"
 	"go/build"
 	"path"
 	"sort"
@@ -31,6 +32,7 @@ func (p *Pkg) Resolve(i Importer) {
 	p.Resolved = true
 
 	name := p.cleanName()
+	bar.Set("prefix", fmt.Sprintf("%s | ", name)).Increment()
 	if name == "" {
 		return
 	}
@@ -99,6 +101,9 @@ func (p *Pkg) addDep(i Importer, name string, srcDir string, isTest bool) {
 		Tree:   p.Tree,
 		Parent: p,
 		Test:   isTest,
+	}
+	if !dep.Tree.isInDomain(&dep) {
+		return
 	}
 	dep.Resolve(i)
 

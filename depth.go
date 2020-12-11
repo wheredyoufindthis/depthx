@@ -24,12 +24,15 @@
 //   	MaxDepth: 10,
 // 	}
 // 	err := t.Resolve("strings")
-package depth
+package depthx
 
 import (
 	"errors"
 	"go/build"
 	"os"
+	"strings"
+
+	"github.com/cheggaaa/pb/v3"
 )
 
 // ErrRootPkgNotResolved is returned when the root Pkg of the Tree cannot be resolved,
@@ -49,11 +52,14 @@ type Tree struct {
 	ResolveInternal bool
 	ResolveTest     bool
 	MaxDepth        int
+	Domain          string
 
 	Importer Importer
 
 	importCache map[string]struct{}
 }
+
+var bar *pb.ProgressBar
 
 // Resolve recursively finds all dependencies for the root Pkg name provided,
 // and the packages it depends on.
@@ -62,6 +68,8 @@ func (t *Tree) Resolve(name string) error {
 	if err != nil {
 		return err
 	}
+
+	bar = pb.StartNew(0)
 
 	t.Root = &Pkg{
 		Name:   name,
@@ -112,6 +120,14 @@ func (t *Tree) isAtMaxDepth(p *Pkg) bool {
 	}
 
 	return p.depth() >= t.MaxDepth
+}
+
+func (t *Tree) isInDomain(p *Pkg) bool {
+	if t.Domain == "" {
+		return true
+	}
+
+	return strings.Contains(p.Name, t.Domain)
 }
 
 // hasSeenImport returns true if the import name provided has already been seen within the tree.
